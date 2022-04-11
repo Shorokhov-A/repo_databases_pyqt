@@ -9,6 +9,7 @@ from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONS
 from common.utils import get_message, send_message
 from decorators import log
 from metaclasses import ServerVerifier
+from descriptors import Port
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
@@ -24,19 +25,12 @@ def arg_parser():
     listen_address = namespace.a
     listen_port = namespace.p
 
-    # Проверка получения корректного номера порта для работы сервера.
-    if not 1023 < listen_port < 65535:
-        SERVER_LOGGER.critical(
-            f'Попытка запуска сервера с неподходящим номером порта: {listen_port}.'
-            f' Допустимые адреса с 1024 до 65535. Клиент завершается.'
-        )
-        sys.exit(1)
-
     return listen_address, listen_port
 
 
 # Основной класс сервера.
 class Server(metaclass=ServerVerifier):
+    port = Port()
     def __init__(self, listen_address, listen_port):
         # Параметры подключения
         self.sock = None
