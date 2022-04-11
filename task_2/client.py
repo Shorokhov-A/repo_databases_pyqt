@@ -11,6 +11,7 @@ from common.variables import MESSAGE, SENDER, DESTINATION, MESSAGE_TEXT, DEFAULT
     PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE, ERROR, EXIT
 from common.utils import send_message, get_message
 from decorators import log
+from metaclasses import ClientVerifier
 
 # Инициализация клиентского логгера:
 CLIENT_LOGGER = logging.getLogger('client')
@@ -76,7 +77,7 @@ def arg_parser():
 
 
 # Класс формировки и отправки сообщений на сервер и взаимодействия с пользователем.
-class ClientSender(threading.Thread):
+class ClientSender(threading.Thread, metaclass=ClientVerifier):
     def __init__(self, account_name, sock):
         self.account_name = account_name
         self.sock = sock
@@ -137,7 +138,7 @@ class ClientSender(threading.Thread):
 
 
 # Класс-приёмник сообщений с сервера. Принимает сообщения, выводит в консоль.
-class ClientReader(threading.Thread):
+class ClientReader(threading.Thread, metaclass=ClientVerifier):
     def __init__(self, account_name, sock):
         self.account_name = account_name
         self.sock = sock
