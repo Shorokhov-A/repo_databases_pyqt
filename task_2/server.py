@@ -1,15 +1,14 @@
 import sys
-import json
 import logging
 import argparse
 import select
-import time
 import logs.server_log_config
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE_200, RESPONSE_400, RESPONSE, \
-    MESSAGE, DESTINATION, EXIT, MESSAGE_TEXT, ERROR, DEFAULT_PORT, MAX_CONNECTIONS, SENDER
+from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE_200, RESPONSE_400, \
+    MESSAGE, DESTINATION, EXIT, MESSAGE_TEXT, ERROR, DEFAULT_PORT, SENDER
 from common.utils import get_message, send_message
 from decorators import log
+from metaclasses import ServerVerifier
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
@@ -37,7 +36,7 @@ def arg_parser():
 
 
 # Основной класс сервера.
-class Server:
+class Server(metaclass=ServerVerifier):
     def __init__(self, listen_address, listen_port):
         # Параметры подключения
         self.sock = None
