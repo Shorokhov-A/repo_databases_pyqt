@@ -144,6 +144,20 @@ class ServerStorage:
         # Возвращаем список кортежей
         return query.all()
 
+    # Функция, возвращающая историю входов по пользователю или всем пользователям
+    def login_history(self, username=None):
+        # Запрашиваем историю входа
+        query = self.session.query(self.AllUsers.name,
+                                   self.LoginHistory.date_time,
+                                   self.LoginHistory.ip,
+                                   self.LoginHistory.port
+                                   ).join(self.AllUsers)
+        # Если было указано имя пользователя, то фильтруем по этому имени
+        if username:
+            query = query.filter(self.AllUsers.name == username)
+        # Возвращаем список кортежей
+        return query.all()
+
 
 # Отладка
 if __name__ == '__main__':
@@ -162,3 +176,7 @@ if __name__ == '__main__':
     # И выводим список активных пользователей
     print(' ---- test_db.active_users_list() after logout client_1 ----')
     print(test_db.active_users_list())
+
+    # Запрашиваем историю входов по пользователю
+    print(' ---- test_db.login_history(client_1) ----')
+    print(test_db.login_history('client_1'))
