@@ -132,6 +132,16 @@ class ServerStorage:
         # Применяем изменения
         self.session.commit()
 
+    # Функция возвращает список известных пользователей со временем последнего входа.
+    def users_list(self):
+        # Запрос строк таблицы пользователей.
+        query = self.session.query(
+            self.AllUsers.name,
+            self.AllUsers.last_login
+        )
+        # Возвращаем список кортежей
+        return query.all()
+
     # Функция возвращает список активных пользователей
     def active_users_list(self):
         # Запрашиваем соединение таблиц и собираем кортежи имя, адрес, порт, время.
@@ -180,3 +190,7 @@ if __name__ == '__main__':
     # Запрашиваем историю входов по пользователю
     print(' ---- test_db.login_history(client_1) ----')
     print(test_db.login_history('client_1'))
+
+    # и выводим список известных пользователей
+    print(' ---- test_db.users_list() ----')
+    print(test_db.users_list())
