@@ -119,6 +119,19 @@ class ServerStorage:
         # Сохраняем изменения
         self.session.commit()
 
+    # Функция, фиксирующая отключение пользователя
+    def user_logout(self, username):
+        # Запрашиваем пользователя, который отключается.
+        # Получаем запись из таблицы self.AllUsers
+        user = self.session.query(self.AllUsers).filter_by(name=username).first()
+
+        # Удаляем его из таблицы активных пользователей.
+        # Удаляем запись из таблицы self.ActiveUsers
+        self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
+
+        # Применяем изменения
+        self.session.commit()
+
     # Функция возвращает список активных пользователей
     def active_users_list(self):
         # Запрашиваем соединение таблиц и собираем кортежи имя, адрес, порт, время.
@@ -142,4 +155,10 @@ if __name__ == '__main__':
 
     # Выводим список кортежей - активных пользователей
     print(' ---- test_db.active_users_list() ----')
+    print(test_db.active_users_list())
+
+    # Выполняем "отключение" пользователя
+    test_db.user_logout('client_1')
+    # И выводим список активных пользователей
+    print(' ---- test_db.active_users_list() after logout client_1 ----')
     print(test_db.active_users_list())
