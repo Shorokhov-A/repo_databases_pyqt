@@ -6,8 +6,8 @@ from common.variables import *
 
 # Класс - серверная база данных:
 class ServerStorage:
-    # Класс - отображение таблицы всех пользователей
-    # Экземпляр этого класса - запись в таблице AllUsers
+    # Класс - отображение таблицы всех пользователей:
+    # Экземпляр этого класса - запись в таблице AllUsers.
     class AllUsers:
         def __init__(self, username):
             self.name = username
@@ -23,6 +23,16 @@ class ServerStorage:
             self.port = port
             self.login_time = login_time
             self.id = None
+
+    # Класс - отображение таблицы истории входов:
+    # Экземпляр этого класса - запись в таблице LoginHistory.
+    class LoginHistory:
+        def __init__(self, name, date, ip, port):
+            self.id = None
+            self.name = name
+            self.date_time = date
+            self.ip = ip
+            self.port = port
 
     def __init__(self):
         # Создаём движок базы данных.
@@ -51,6 +61,15 @@ class ServerStorage:
                                    Column('login_time', DateTime)
                                    )
 
+        # Создаём таблицу истории входов
+        user_login_history = Table('Login_history', self.metadata,
+                                   Column('id', Integer, primary_key=True),
+                                   Column('name', ForeignKey('Users.id')),
+                                   Column('date_time', DateTime),
+                                   Column('ip', String),
+                                   Column('port', String)
+                                   )
+
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
@@ -58,6 +77,7 @@ class ServerStorage:
         # Связываем класс в ORM с таблицей
         mapper(self.AllUsers, users_table)
         mapper(self.ActiveUsers, active_users_table)
+        mapper(self.LoginHistory, user_login_history)
 
         # Создаём сессию
         Session = sessionmaker(bind=self.database_engine)
@@ -67,3 +87,8 @@ class ServerStorage:
         # Когда устанавливаем соединение, очищаем таблицу активных пользователей
         self.session.query(self.ActiveUsers).delete()
         self.session.commit()
+
+
+# Отладка
+if __name__ == '__main__':
+    test_db = ServerStorage()
