@@ -119,6 +119,18 @@ class ServerStorage:
         # Сохраняем изменения
         self.session.commit()
 
+    # Функция возвращает список активных пользователей
+    def active_users_list(self):
+        # Запрашиваем соединение таблиц и собираем кортежи имя, адрес, порт, время.
+        query = self.session.query(
+            self.AllUsers.name,
+            self.ActiveUsers.ip_address,
+            self.ActiveUsers.port,
+            self.ActiveUsers.login_time
+        ).join(self.AllUsers)
+        # Возвращаем список кортежей
+        return query.all()
+
 
 # Отладка
 if __name__ == '__main__':
@@ -127,3 +139,7 @@ if __name__ == '__main__':
     # Выполняем "подключение" пользователя
     test_db.user_login('client_1', '192.168.1.120', 8080)
     test_db.user_login('client_2', '192.168.1.121', 7777)
+
+    # Выводим список кортежей - активных пользователей
+    print(' ---- test_db.active_users_list() ----')
+    print(test_db.active_users_list())
