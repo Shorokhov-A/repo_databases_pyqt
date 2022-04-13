@@ -73,7 +73,7 @@ class ServerStorage:
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
-        # Создаём отображения
+        # Создаём отображения.
         # Связываем класс в ORM с таблицей
         mapper(self.AllUsers, users_table)
         mapper(self.ActiveUsers, active_users_table)
@@ -83,12 +83,47 @@ class ServerStorage:
         Session = sessionmaker(bind=self.database_engine)
         self.session = Session()
 
-        # Если в таблице активных пользователей есть записи, то их необходимо удалить
-        # Когда устанавливаем соединение, очищаем таблицу активных пользователей
+        # Если в таблице активных пользователей есть записи, то их необходимо удалить.
+        # Когда устанавливаем соединение, очищаем таблицу активных пользователей.
         self.session.query(self.ActiveUsers).delete()
+        self.session.commit()
+
+    # Функция выполняющаяся при входе пользователя, записывает в базу факт входа.
+    def user_login(self, username, ip_address, port):
+        print(username, ip_address, port)
+        # Запрос в таблицу пользователей на наличие там пользователя с таким именем
+        result = self.session.query(self.AllUsers).filter_by(name=username)
+
+        # Если имя пользователя уже присутствует в таблице, то обновляем время последнего входа
+        if result.count():
+            user = result.first()
+            user.last_login = datetime.datetime.now()
+        # Если нет, то создаём нового пользователя
+        else:
+            # Создаём экземпляр класса self.AllUsers, через который передаём данные в таблицу
+            user = self.AllUsers(username)
+            self.session.add(user)
+            # Коммит здесь нужен для того, чтобы создать нового пользователя,
+            # id которого будет использовано для добавления в таблицу активных пользователей
+            self.session.commit()
+
+        # Теперь можно создать запись в таблицу активных пользователей о факте входа.
+        # Создаём экземпляр класса self.ActiveUsers, через который передаём данные в таблицу
+        new_active_user = self.ActiveUsers(user.id, ip_address, port, datetime.datetime.now())
+        self.session.add(new_active_user)
+
+        # Создаём экземпляр класса self.LoginHistory, через который передаём данные в таблицу
+        history = self.LoginHistory(user.id, datetime.datetime.now(), ip_address, port)
+        self.session.add(history)
+
+        # Сохраняем изменения
         self.session.commit()
 
 
 # Отладка
 if __name__ == '__main__':
     test_db = ServerStorage()
+
+    # Выполняем "подключение" пользователя
+    test_db.user_login('client_1', '192.168.1.120', 8080)
+    test_db.user_login('client_2', '192.168.1.121', 7777)
