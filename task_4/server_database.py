@@ -34,6 +34,13 @@ class ServerStorage:
             self.ip = ip
             self.port = port
 
+    # Класс - отображение таблицы контактов пользователей:
+    class UsersContacts:
+        def __init__(self, user, contact):
+            self.id = None
+            self.user = user
+            self.contact = contact
+
     def __init__(self):
         # Создаём движок базы данных.
         # SERVER_DATABASE - sqlite:///server_base.db3
@@ -70,6 +77,13 @@ class ServerStorage:
                                    Column('port', String)
                                    )
 
+        # Создаём таблицу контактов пользователей
+        contacts = Table('Contacts', self.metadata,
+                         Column('id', Integer, primary_key=True),
+                         Column('user', ForeignKey('Users.id')),
+                         Column('contact', ForeignKey('Users.id'))
+                         )
+
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
@@ -78,6 +92,7 @@ class ServerStorage:
         mapper(self.AllUsers, users_table)
         mapper(self.ActiveUsers, active_users_table)
         mapper(self.LoginHistory, user_login_history)
+        mapper(self.UsersContacts, contacts)
 
         # Создаём сессию
         Session = sessionmaker(bind=self.database_engine)
@@ -167,6 +182,19 @@ class ServerStorage:
             query = query.filter(self.AllUsers.name == username)
         # Возвращаем список кортежей
         return query.all()
+
+    # Функция возвращает список контактов пользователя.
+    def get_contacts(self, username):
+        # Запрашиваем указанного пользователя
+        user = self.session.query(self.AllUsers).filter_by(name=username).one()
+
+        # Запрашиваем его список контактов
+        query = self.session.query(self.UsersContacts, self.AllUsers.name). \
+            filter_by(user=user.id). \
+            join(self.AllUsers, self.UsersContacts.contact == self.AllUsers.id)
+
+        # выбираем только имена пользователей и возвращаем их.
+        return [contact[1] for contact in query.all()]
 
 
 # Отладка

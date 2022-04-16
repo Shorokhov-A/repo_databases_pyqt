@@ -5,8 +5,7 @@ import select
 import threading
 import logs.server_log_config
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from common.variables import ACTION, PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE_200, RESPONSE_400, \
-    MESSAGE, DESTINATION, EXIT, MESSAGE_TEXT, ERROR, DEFAULT_PORT, SENDER
+from common.variables import *
 from common.utils import get_message, send_message
 from decorators import log
 from metaclasses import ServerVerifier
@@ -103,6 +102,12 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
             return
+        # Если это запрос контакт-листа
+        elif ACTION in message and message[ACTION] == GET_CONTACTS and USER in message and \
+                self.names[message[USER]] == client:
+            response = RESPONSE_202
+            response[LIST_INFO] = self.database.get_contacts(message[USER])
+            send_message(client, response)
         # Иначе отдаём Bad request
         else:
             response = RESPONSE_400

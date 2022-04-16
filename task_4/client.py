@@ -7,8 +7,7 @@ import argparse
 import threading
 from logs import client_log_config
 from errors import ReqFieldMissingError, ServerError, IncorrectDataReceivedError
-from common.variables import MESSAGE, SENDER, DESTINATION, MESSAGE_TEXT, DEFAULT_IP_ADDRESS, DEFAULT_PORT, ACTION, \
-    PRESENCE, TIME, USER, ACCOUNT_NAME, RESPONSE, ERROR, EXIT
+from common.variables import *
 from common.utils import send_message, get_message
 from decorators import log
 from metaclasses import ClientVerifier
@@ -161,6 +160,24 @@ class ClientReader(threading.Thread, metaclass=ClientVerifier):
             except (OSError, ConnectionError, ConnectionAbortedError, ConnectionResetError, json.JSONDecodeError):
                 CLIENT_LOGGER.critical('Потеряно соединение с сервером.')
                 break
+
+
+# Функция-запрос списка контактов:
+def contacts_list_request(sock, name):
+    CLIENT_LOGGER.debug(f'Запрос списка контактов для пользователя {name}')
+    request_to_server = {
+        ACTION: GET_CONTACTS,
+        TIME: time.time(),
+        USER: name
+    }
+    CLIENT_LOGGER.debug(f'Сформирован запрос {request_to_server}')
+    send_message(sock, request_to_server)
+    server_answer = get_message(sock)
+    CLIENT_LOGGER.debug(f'Получен ответ {server_answer}')
+    if RESPONSE in server_answer and server_answer[RESPONSE] == 202:
+        return server_answer[LIST_INFO]
+    else:
+        raise ServerError
 
 
 def main():
