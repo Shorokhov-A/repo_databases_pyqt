@@ -35,6 +35,7 @@ MESSAGE_TEXT = 'mess_text'
 EXIT = 'exit'
 GET_CONTACTS = 'get_contacts'
 LIST_INFO = 'data_list'
+ADD_CONTACT = 'add'
 
 # Словари-ответы:
 # 200

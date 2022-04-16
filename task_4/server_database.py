@@ -196,6 +196,21 @@ class ServerStorage:
         # выбираем только имена пользователей и возвращаем их.
         return [contact[1] for contact in query.all()]
 
+    # Функция добавляет контакт для пользователя.
+    def add_contact(self, user, contact):
+        # Получаем ID пользователей
+        user = self.session.query(self.AllUsers).filter_by(name=user).first()
+        contact = self.session.query(self.AllUsers).filter_by(name=contact).first()
+
+        # Проверяем что не дубль и что контакт может существовать (полю пользователь мы доверяем)
+        if not contact or self.session.query(self.UsersContacts).filter_by(user=user.id, contact=contact.id).count():
+            return
+
+        # Создаём объект и заносим его в базу
+        contact_row = self.UsersContacts(user.id, contact.id)
+        self.session.add(contact_row)
+        self.session.commit()
+
 
 # Отладка
 if __name__ == '__main__':
@@ -222,3 +237,6 @@ if __name__ == '__main__':
     # и выводим список известных пользователей
     print(' ---- test_db.users_list() ----')
     print(test_db.users_list())
+
+    # Добавляем контакты
+    test_db.add_contact('client_2', 'client_1')

@@ -102,12 +102,17 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
             return
-        # Если это запрос контакт-листа
+        # Если это запрос списка контактов
         elif ACTION in message and message[ACTION] == GET_CONTACTS and USER in message and \
                 self.names[message[USER]] == client:
             response = RESPONSE_202
             response[LIST_INFO] = self.database.get_contacts(message[USER])
             send_message(client, response)
+        # Если это добавление контакта
+        elif ACTION in message and message[ACTION] == ADD_CONTACT and ACCOUNT_NAME in message and USER in message \
+                and self.names[message[USER]] == client:
+            self.database.add_contact(message[USER], message[ACCOUNT_NAME])
+            send_message(client, RESPONSE_200)
         # Иначе отдаём Bad request
         else:
             response = RESPONSE_400

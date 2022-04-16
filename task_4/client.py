@@ -180,6 +180,24 @@ def contacts_list_request(sock, name):
         raise ServerError
 
 
+# Функция добавления пользователя в контакт лист
+def add_contact(sock, username, contact):
+    CLIENT_LOGGER.debug(f'Создание контакта {contact}')
+    request_to_server = {
+        ACTION: ADD_CONTACT,
+        TIME: time.time(),
+        USER: username,
+        ACCOUNT_NAME: contact
+    }
+    send_message(sock, request_to_server)
+    server_answer = get_message(sock)
+    if RESPONSE in server_answer and server_answer[RESPONSE] == 200:
+        pass
+    else:
+        raise ServerError('Ошибка создания контакта')
+    print('Удачное создание контакта.')
+
+
 def main():
     # Сообщаем о запуске.
     print(f'Консольный мессенджер. Клиентский модуль.')
