@@ -125,6 +125,13 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             self.database.remove_contact(message[USER], message[ACCOUNT_NAME])
             send_message(client, RESPONSE_200)
 
+        # Если это запрос известных пользователей
+        elif ACTION in message and message[ACTION] == USERS_REQUEST and ACCOUNT_NAME in message \
+                and self.names[message[ACCOUNT_NAME]] == client:
+            response = RESPONSE_202
+            response[LIST_INFO] = [user[0] for user in self.database.users_list()]
+            send_message(client, response)
+
         # Иначе отдаём Bad request
         else:
             response = RESPONSE_400

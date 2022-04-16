@@ -37,6 +37,7 @@ GET_CONTACTS = 'get_contacts'
 LIST_INFO = 'data_list'
 ADD_CONTACT = 'add'
 REMOVE_CONTACT = 'remove'
+USERS_REQUEST = 'get_users'
 
 # Словари-ответы:
 # 200
