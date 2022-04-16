@@ -36,6 +36,7 @@ EXIT = 'exit'
 GET_CONTACTS = 'get_contacts'
 LIST_INFO = 'data_list'
 ADD_CONTACT = 'add'
+REMOVE_CONTACT = 'remove'
 
 # Словари-ответы:
 # 200

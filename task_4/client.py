@@ -198,6 +198,24 @@ def add_contact(sock, username, contact):
     print('Удачное создание контакта.')
 
 
+# Функция удаления пользователя из списка контактов
+def remove_contact(sock, username, contact):
+    CLIENT_LOGGER.debug(f'Создание контакта {contact}')
+    request_to_server = {
+        ACTION: REMOVE_CONTACT,
+        TIME: time.time(),
+        USER: username,
+        ACCOUNT_NAME: contact
+    }
+    send_message(sock, request_to_server)
+    server_answer = get_message(sock)
+    if RESPONSE in server_answer and server_answer[RESPONSE] == 200:
+        pass
+    else:
+        raise ServerError('Ошибка удаления клиента')
+    print('Удачное удаление.')
+
+
 def main():
     # Сообщаем о запуске.
     print(f'Консольный мессенджер. Клиентский модуль.')

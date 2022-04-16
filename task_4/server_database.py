@@ -211,6 +211,23 @@ class ServerStorage:
         self.session.add(contact_row)
         self.session.commit()
 
+    # Функция удаляет контакт из базы данных
+    def remove_contact(self, user, contact):
+        # Получаем ID пользователей
+        user = self.session.query(self.AllUsers).filter_by(name=user).first()
+        contact = self.session.query(self.AllUsers).filter_by(name=contact).first()
+
+        # Проверяем что контакт может существовать (полю пользователь мы доверяем)
+        if not contact:
+            return
+
+        # Удаляем требуемое
+        print(self.session.query(self.UsersContacts).filter(
+            self.UsersContacts.user == user.id,
+            self.UsersContacts.contact == contact.id
+        ).delete())
+        self.session.commit()
+
 
 # Отладка
 if __name__ == '__main__':
@@ -238,5 +255,8 @@ if __name__ == '__main__':
     print(' ---- test_db.users_list() ----')
     print(test_db.users_list())
 
-    # Добавляем контакты
+    # Добавляем контакт
     test_db.add_contact('client_2', 'client_1')
+
+    # Удаляем контакт
+    test_db.remove_contact('client_2', 'client_1')
