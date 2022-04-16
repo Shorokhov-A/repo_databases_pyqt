@@ -1,5 +1,6 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text, DateTime
 from sqlalchemy.orm import mapper, sessionmaker
+import datetime
 
 
 # Класс - база данных сервера.
@@ -9,6 +10,15 @@ class ClientDatabase:
         def __init__(self, contact):
             self.id = None
             self.name = contact
+
+    # Класс - отображение таблицы истории сообщений
+    class MessageHistory:
+        def __init__(self, from_user, to_user, message):
+            self.id = None
+            self.from_user = from_user
+            self.to_user = to_user
+            self.message = message
+            self.date = datetime.datetime.now()
 
     # Конструктор класса:
     def __init__(self, name):
@@ -30,11 +40,21 @@ class ClientDatabase:
                          Column('name', String, unique=True)
                          )
 
+        # Создаём таблицу истории сообщений
+        history = Table('message_history', self.metadata,
+                        Column('id', Integer, primary_key=True),
+                        Column('from_user', String),
+                        Column('to_user', String),
+                        Column('message', Text),
+                        Column('date', DateTime)
+                        )
+
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
         # Создаём отображения
         mapper(self.Contacts, contacts)
+        mapper(self.MessageHistory, history)
 
         # Создаём сессию
         Session = sessionmaker(bind=self.database_engine)
