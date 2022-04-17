@@ -14,7 +14,7 @@ from decorators import log
 from metaclasses import ServerVerifier
 from descriptors import Port
 from server_database import ServerStorage
-from server_gui import MainWindow
+from server_gui import MainWindow, gui_create_model
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
@@ -232,6 +232,12 @@ def main():
     # Создаём графическое окружение для сервера:
     server_app = QApplication(sys.argv)
     main_window = MainWindow()
+
+    # Инициализируем параметры в окна
+    main_window.statusBar().showMessage('Server Working')
+    main_window.active_clients_table.setModel(gui_create_model(database))
+    main_window.active_clients_table.resizeColumnsToContents()
+    main_window.active_clients_table.resizeRowsToContents()
 
 
 if __name__ == '__main__':
