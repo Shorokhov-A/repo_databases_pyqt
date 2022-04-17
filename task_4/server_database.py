@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import mapper, sessionmaker
 import datetime
+from pprint import pprint
 from common.variables import *
 
 
@@ -40,6 +41,14 @@ class ServerStorage:
             self.id = None
             self.user = user
             self.contact = contact
+
+    # Класс отображение таблицы истории действий
+    class UsersHistory:
+        def __init__(self, user):
+            self.id = None
+            self.user = user
+            self.sent = 0
+            self.accepted = 0
 
     def __init__(self, path):
         # Создаём движок базы данных.
@@ -82,6 +91,14 @@ class ServerStorage:
                          Column('contact', ForeignKey('Users.id'))
                          )
 
+        # Создаём таблицу истории пользователей
+        users_history_table = Table('History', self.metadata,
+                                    Column('id', Integer, primary_key=True),
+                                    Column('user', ForeignKey('Users.id')),
+                                    Column('sent', Integer),
+                                    Column('accepted', Integer)
+                                    )
+
         # Создаём таблицы
         self.metadata.create_all(self.database_engine)
 
@@ -91,6 +108,7 @@ class ServerStorage:
         mapper(self.ActiveUsers, active_users_table)
         mapper(self.LoginHistory, user_login_history)
         mapper(self.UsersContacts, contacts)
+        mapper(self.UsersHistory, users_history_table)
 
         # Создаём сессию
         Session = sessionmaker(bind=self.database_engine)
@@ -119,6 +137,8 @@ class ServerStorage:
             # Коммит здесь нужен для того, чтобы создать нового пользователя,
             # id которого будет использовано для добавления в таблицу активных пользователей
             self.session.commit()
+            user_in_history = self.UsersHistory(user.id)
+            self.session.add(user_in_history)
 
         # Теперь можно создать запись в таблицу активных пользователей о факте входа.
         # Создаём экземпляр класса self.ActiveUsers, через который передаём данные в таблицу
@@ -226,10 +246,34 @@ class ServerStorage:
         ).delete())
         self.session.commit()
 
+    # Функция фиксирует передачу сообщения и делает соответствующие отметки в БД
+    def process_message(self, sender, recipient):
+        # Получаем ID отправителя и получателя
+        sender = self.session.query(self.AllUsers).filter_by(name=sender).first().id
+        recipient = self.session.query(self.AllUsers).filter_by(name=recipient).first().id
+        # Запрашиваем строки из истории и увеличиваем счётчики
+        sender_row = self.session.query(self.UsersHistory).filter_by(user=sender).first()
+        sender_row.sent += 1
+        recipient_row = self.session.query(self.UsersHistory).filter_by(user=recipient).first()
+        recipient_row.accepted += 1
+
+        self.session.commit()
+
+    # Функция возвращает количество переданных и полученных сообщений
+    def message_history(self):
+        query = self.session.query(
+            self.AllUsers.name,
+            self.AllUsers.last_login,
+            self.UsersHistory.sent,
+            self.UsersHistory.accepted
+        ).join(self.AllUsers)
+        # Возвращаем список кортежей
+        return query.all()
+
 
 # Отладка
 if __name__ == '__main__':
-    test_db = ServerStorage()
+    test_db = ServerStorage('server_base.db3')
 
     # Выполняем "подключение" пользователя
     test_db.user_login('client_1', '192.168.1.120', 8080)
@@ -237,24 +281,28 @@ if __name__ == '__main__':
 
     # Выводим список кортежей - активных пользователей
     print(' ---- test_db.active_users_list() ----')
-    print(test_db.active_users_list())
+    pprint(test_db.active_users_list())
 
     # Выполняем "отключение" пользователя
     test_db.user_logout('client_1')
     # И выводим список активных пользователей
     print(' ---- test_db.active_users_list() after logout client_1 ----')
-    print(test_db.active_users_list())
+    pprint(test_db.active_users_list())
 
     # Запрашиваем историю входов по пользователю
     print(' ---- test_db.login_history(client_1) ----')
-    print(test_db.login_history('client_1'))
+    pprint(test_db.login_history('client_1'))
 
     # и выводим список известных пользователей
     print(' ---- test_db.users_list() ----')
-    print(test_db.users_list())
+    pprint(test_db.users_list())
 
     # Добавляем контакт
     test_db.add_contact('client_2', 'client_1')
 
     # Удаляем контакт
     test_db.remove_contact('client_2', 'client_1')
+
+    # Проверка фиксации обмена сообщениями в истории сообщений.
+    test_db.process_message('client_2', 'client_1')
+    pprint(test_db.message_history())
