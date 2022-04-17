@@ -41,13 +41,11 @@ class ServerStorage:
             self.user = user
             self.contact = contact
 
-    def __init__(self):
+    def __init__(self, path):
         # Создаём движок базы данных.
-        # SERVER_DATABASE - sqlite:///server_base.db3
-        # echo=False - отключает вывод на экран sql-запросов.
-        # pool_recycle - по умолчанию соединение с БД через 8 часов простоя обрывается.
-        # Чтобы этого не случилось необходимо добавить pool_recycle=7200 (переустановка соединения через каждые 2 часа)
-        self.database_engine = create_engine(SERVER_DATABASE, echo=False, pool_recycle=7200)
+        print(path)
+        self.database_engine = create_engine(f'sqlite:///{path}', echo=False, pool_recycle=7200,
+                                             connect_args={'check_same_thread': False})
 
         # Создаём объект MetaData
         self.metadata = MetaData()

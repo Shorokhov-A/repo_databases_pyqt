@@ -3,6 +3,9 @@ import logging
 import argparse
 import select
 import threading
+import configparser
+import os
+from PyQt5.QtWidgets import QApplication
 import logs.server_log_config
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from common.variables import *
@@ -11,6 +14,7 @@ from decorators import log
 from metaclasses import ServerVerifier
 from descriptors import Port
 from server_database import ServerStorage
+from server_gui import MainWindow
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
@@ -208,40 +212,26 @@ def print_help():
 
 
 def main():
+    # Загрузка файла конфигурации сервера
+    config = configparser.ConfigParser()
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    config.read(f"{dir_path}/{'server.ini'}")
+
     # Загрузка параметров командной строки, если нет параметров, то задаём значения по умолчанию.
-    listen_address, listen_port = arg_parser()
+    listen_address, listen_port = arg_parser(config['SETTINGS']['Default_port'], config['SETTINGS']['Listen_Address'])
 
     # Инициализация базы данных
-    database = ServerStorage()
+    database = ServerStorage(os.path.join(config['SETTINGS']['Database_path'], config['SETTINGS']['Database_file']))
 
-    # Создание экземпляра класса - сервера.
+    # Создание экземпляра класса - сервера и его запуск:
     server = Server(listen_address, listen_port, database)
     server.daemon = True
     server.start()
 
-    # Печатаем справку:
-    print_help()
-
-    # Основной цикл сервера:
-    while True:
-        command = input('Введите команду: ')
-        if command == 'help':
-            print_help()
-        elif command == 'exit':
-            break
-        elif command == 'users':
-            for user in sorted(database.users_list()):
-                print(f'Пользователь {user[0]}, последний вход: {user[1]}')
-        elif command == 'connected':
-            for user in sorted(database.active_users_list()):
-                print(f'Пользователь {user[0]}, подключен: {user[1]}:{user[2]}, время установки соединения: {user[3]}')
-        elif command == 'loghist':
-            name = input('Введите имя пользователя для просмотра истории. '
-                         'Для вывода всей истории, просто нажмите Enter: ')
-            for user in sorted(database.login_history(name)):
-                print(f'Пользователь: {user[0]} время входа: {user[1]}. Вход с: {user[2]}:{user[3]}')
-        else:
-            print('Команда не распознана.')
+    # Создаём графическое окружение для сервера:
+    server_app = QApplication(sys.argv)
+    main_window = MainWindow()
 
 
 if __name__ == '__main__':
