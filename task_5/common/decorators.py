@@ -1,6 +1,8 @@
 import sys
 import traceback
 import logging
+
+sys.path.append('../')
 from logs import client_log_config, server_log_config
 
 if sys.argv[0].find('server.py') == -1:
