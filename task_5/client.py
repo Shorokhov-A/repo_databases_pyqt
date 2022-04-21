@@ -9,6 +9,7 @@ from common.decorators import log
 from client.start_dialog import UserNameDialog
 from common.errors import ServerError
 from client.database import ClientDatabase
+from client.transport import ClientTransport
 
 
 # Инициализация клиентского логгера:
@@ -58,3 +59,20 @@ if __name__ == '__main__':
             del start_dialog
         else:
             exit(0)
+
+    # Записываем логи
+    CLIENT_LOGGER.info(
+        f'Запущен клиент с парамертами: адрес сервера: {server_address}, '
+        f'порт: {server_port}, имя пользователя: {client_name}')
+
+    # Создаём объект базы данных
+    database = ClientDatabase(client_name)
+
+    # Создаём объект - транспорт и запускаем транспортный поток
+    try:
+        transport = ClientTransport(server_port, server_address, database, client_name)
+    except ServerError as error:
+        print(error.text)
+        exit(1)
+    transport.setDaemon(True)
+    transport.start()

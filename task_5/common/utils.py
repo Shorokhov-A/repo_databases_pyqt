@@ -5,8 +5,8 @@ import os
 from common.variables import MAX_PACKAGE_LENGTH, ENCODING
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
-from decorators import log
-from errors import IncorrectDataReceivedError, NoDictInputError
+from common.decorators import log
+from common.errors import IncorrectDataReceivedError, NoDictInputError
 
 
 @log

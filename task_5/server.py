@@ -11,7 +11,7 @@ import logs.server_log_config
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from common.variables import *
 from common.utils import get_message, send_message
-from decorators import log
+from common.decorators import log
 from metaclasses import ServerVerifier
 from descriptors import Port
 from server_database import ServerStorage
