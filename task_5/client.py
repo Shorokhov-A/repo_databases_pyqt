@@ -80,5 +80,10 @@ if __name__ == '__main__':
 
     # Создаём GUI
     main_window = ClientMainWindow(database, transport)
+    main_window.make_connection(transport)
     main_window.setWindowTitle(f'Чат Программа alpha release - {client_name}')
     client_app.exec_()
+
+    # Раз графическая оболочка закрылась, закрываем транспорт
+    transport.transport_shutdown()
+    transport.join()

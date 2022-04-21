@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 import sys
 import logging
 
@@ -27,6 +27,7 @@ class ClientMainWindow(QMainWindow):
 
         # Дополнительные требующиеся атрибуты
         self.history_model = None
+        self.messages = QMessageBox()
 
         self.set_disabled_input()
         self.show()
@@ -44,6 +45,16 @@ class ClientMainWindow(QMainWindow):
         self.ui.btn_clear.setDisabled(True)
         self.ui.btn_send.setDisabled(True)
         self.ui.text_message.setDisabled(True)
+
+    # Слот потери соединения
+    # Выдаёт сообщение об ошибке и завершает работу приложения
+    @pyqtSlot()
+    def connection_lost(self):
+        self.messages.warning(self, 'Сбой соединения', 'Потеряно соединение с сервером.')
+        self.close()
+
+    def make_connection(self, trans_obj):
+        trans_obj.connection_lost.connect(self.connection_lost)
 
 
 if __name__ == '__main__':
