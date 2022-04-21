@@ -10,6 +10,7 @@ from client.start_dialog import UserNameDialog
 from common.errors import ServerError
 from client.database import ClientDatabase
 from client.transport import ClientTransport
+from client.main_window import ClientMainWindow
 
 
 # Инициализация клиентского логгера:
@@ -76,3 +77,8 @@ if __name__ == '__main__':
         exit(1)
     transport.setDaemon(True)
     transport.start()
+
+    # Создаём GUI
+    main_window = ClientMainWindow(database, transport)
+    main_window.setWindowTitle(f'Чат Программа alpha release - {client_name}')
+    client_app.exec_()
