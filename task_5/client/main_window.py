@@ -1,3 +1,4 @@
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
 import sys
@@ -6,6 +7,8 @@ import logging
 sys.path.append('../')
 from logs import client_log_config
 from client.main_window_conv import Ui_MainClientWindow
+from client.add_contact import AddContactDialog
+from common.errors import ServerError
 
 CLIENT_LOGGER = logging.getLogger('client')
 
@@ -25,10 +28,16 @@ class ClientMainWindow(QMainWindow):
         # Кнопка "Выход"
         self.ui.menu_exit.triggered.connect(qApp.exit)
 
+        # "добавить контакт"
+        self.ui.btn_add_contact.clicked.connect(self.add_contact_window)
+        self.ui.menu_add_contact.triggered.connect(self.add_contact_window)
+
         # Дополнительные требующиеся атрибуты
+        self.contacts_model = None
         self.history_model = None
         self.messages = QMessageBox()
 
+        self.clients_list_update()
         self.set_disabled_input()
         self.show()
 
@@ -45,6 +54,48 @@ class ClientMainWindow(QMainWindow):
         self.ui.btn_clear.setDisabled(True)
         self.ui.btn_send.setDisabled(True)
         self.ui.text_message.setDisabled(True)
+
+    # Функция, обновляющая контакт-лист
+    def clients_list_update(self):
+        contacts_list = self.database.get_contacts()
+        self.contacts_model = QStandardItemModel()
+        for i in sorted(contacts_list):
+            item = QStandardItem(i)
+            item.setEditable(False)
+            self.contacts_model.appendRow(item)
+        self.ui.list_contacts.setModel(self.contacts_model)
+
+    # Функция добавления контакта
+    def add_contact_window(self):
+        global select_dialog
+        select_dialog = AddContactDialog(self.transport, self.database)
+        select_dialog.btn_ok.clicked.connect(lambda: self.add_contact_action(select_dialog))
+        select_dialog.show()
+
+    # Функция - обработчик добавления, сообщает серверу, обновляет таблицу и список контактов
+    def add_contact_action(self, item):
+        new_contact = item.selector.currentText()
+        self.add_contact(new_contact)
+        item.close()
+
+    # Функция, добавляющая контакт в БД
+    def add_contact(self, new_contact):
+        try:
+            self.transport.add_contact(new_contact)
+        except ServerError as err:
+            self.messages.critical(self, 'Ошибка сервера', err.text)
+        except OSError as err:
+            if err.errno:
+                self.messages.critical(self, 'Ошибка', 'Потеряно соединение с сервером!')
+                self.close()
+            self.messages.critical(self, 'Ошибка', 'Таймаут соединения!')
+        else:
+            self.database.add_contact(new_contact)
+            new_contact = QStandardItem(new_contact)
+            new_contact.setEditable(False)
+            self.contacts_model.appendRow(new_contact)
+            CLIENT_LOGGER.info(f'Успешно добавлен контакт {new_contact}')
+            self.messages.information(self, 'Успех', 'Контакт успешно добавлен.')
 
     # Слот потери соединения
     # Выдаёт сообщение об ошибке и завершает работу приложения
