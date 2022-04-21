@@ -8,6 +8,7 @@ sys.path.append('../')
 from logs import client_log_config
 from client.main_window_conv import Ui_MainClientWindow
 from client.add_contact import AddContactDialog
+from client.del_contact import DelContactDialog
 from common.errors import ServerError
 
 CLIENT_LOGGER = logging.getLogger('client')
@@ -32,10 +33,15 @@ class ClientMainWindow(QMainWindow):
         self.ui.btn_add_contact.clicked.connect(self.add_contact_window)
         self.ui.menu_add_contact.triggered.connect(self.add_contact_window)
 
+        # Удалить контакт
+        self.ui.btn_remove_contact.clicked.connect(self.delete_contact_window)
+        self.ui.menu_del_contact.triggered.connect(self.delete_contact_window)
+
         # Дополнительные требующиеся атрибуты
         self.contacts_model = None
         self.history_model = None
         self.messages = QMessageBox()
+        self.current_chat = None  # Текущий контакт с которым идёт обмен сообщениями
 
         self.clients_list_update()
         self.set_disabled_input()
@@ -96,6 +102,36 @@ class ClientMainWindow(QMainWindow):
             self.contacts_model.appendRow(new_contact)
             CLIENT_LOGGER.info(f'Успешно добавлен контакт {new_contact}')
             self.messages.information(self, 'Успех', 'Контакт успешно добавлен.')
+
+    # Функция удаления контакта
+    def delete_contact_window(self):
+        global remove_dialog
+        remove_dialog = DelContactDialog(self.database)
+        remove_dialog.btn_ok.clicked.connect(lambda: self.delete_contact(remove_dialog))
+        remove_dialog.show()
+
+    # Функция-обработчик удаления контакта: сообщает на сервер, обновляет таблицу контактов
+    def delete_contact(self, item):
+        selected = item.selector.currentText()
+        try:
+            self.transport.remove_contact(selected)
+        except ServerError as err:
+            self.messages.critical(self, 'Ошибка сервера', err.text)
+        except OSError as err:
+            if err.errno:
+                self.messages.critical(self, 'Ошибка', 'Потеряно соединение с сервером!')
+                self.close()
+            self.messages.critical(self, 'Ошибка', 'Таймаут соединения!')
+        else:
+            self.database.del_contact(selected)
+            self.clients_list_update()
+            CLIENT_LOGGER.info(f'Успешно удалён контакт {selected}')
+            self.messages.information(self, 'Успех', 'Контакт успешно удалён.')
+            item.close()
+            # Если удалён активный пользователь, то деактивируем поля ввода.
+            if selected == self.current_chat:
+                self.current_chat = None
+                self.set_disabled_input()
 
     # Слот потери соединения
     # Выдаёт сообщение об ошибке и завершает работу приложения
