@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QBrush, QColor
 from PyQt5.QtWidgets import QMainWindow, qApp, QMessageBox, QApplication
 from PyQt5.QtCore import Qt, pyqtSlot
 import sys
@@ -42,6 +42,11 @@ class ClientMainWindow(QMainWindow):
         self.history_model = None
         self.messages = QMessageBox()
         self.current_chat = None  # Текущий контакт с которым идёт обмен сообщениями
+        self.ui.list_messages.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.list_messages.setWordWrap(True)
+
+        # Double click по списку контактов отправляется в обработчик
+        self.ui.list_contacts.doubleClicked.connect(self.select_active_user)
 
         self.clients_list_update()
         self.set_disabled_input()
@@ -132,6 +137,59 @@ class ClientMainWindow(QMainWindow):
             if selected == self.current_chat:
                 self.current_chat = None
                 self.set_disabled_input()
+
+    # Функция обработчик double click по контакту
+    def select_active_user(self):
+        # Выбранный пользователем контакт находится в выделенном элементе в QListView
+        self.current_chat = self.ui.list_contacts.currentIndex().data()
+        # вызываем основную функцию
+        self.set_active_user()
+
+    # Функция, устанавливающая активного собеседника
+    def set_active_user(self):
+        # Ставим надпись и активируем кнопки
+        self.ui.label_new_message.setText(f'Введите сообщение для {self.current_chat}:')
+        self.ui.btn_clear.setDisabled(False)
+        self.ui.btn_send.setDisabled(False)
+        self.ui.text_message.setDisabled(False)
+
+        # Заполняем окно историю сообщений по требуемому пользователю.
+        self.history_list_update()
+
+    # Заполняем историю сообщений.
+    def history_list_update(self):
+        # Получаем историю сортированную по дате
+        list_messages = sorted(self.database.get_history(self.current_chat),
+                               key=lambda item: item[3])
+        # Если модель не создана, создадим.
+        if not self.history_model:
+            self.history_model = QStandardItemModel()
+            self.ui.list_messages.setModel(self.history_model)
+        # Очистим от старых записей
+        self.history_model.clear()
+        # Берём не более 20 последних записей.
+        length = len(list_messages)
+        start_index = 0
+        if length > 20:
+            start_index = length - 20
+        # Заполнение модели записями, так же стоит разделить входящие и исходящие
+        # сообщения выравниванием и разным фоном.
+        # Записи в обратном порядке, поэтому выбираем их с конца и не более 20
+        for i in range(start_index, length):
+            item = list_messages[i]
+            if item[1] == 'in':
+                mess = QStandardItem(f'Входящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                mess.setEditable(False)
+                mess.setBackground(QBrush(QColor(255, 213, 213)))
+                mess.setTextAlignment(Qt.AlignLeft)
+                self.history_model.appendRow(mess)
+            else:
+                mess = QStandardItem(f'Исходящее от {item[3].replace(microsecond=0)}:\n {item[2]}')
+                mess.setEditable(False)
+                mess.setTextAlignment(Qt.AlignRight)
+                mess.setBackground(QBrush(QColor(204, 255, 204)))
+                self.history_model.appendRow(mess)
+        self.ui.list_messages.scrollToBottom()
 
     # Слот потери соединения
     # Выдаёт сообщение об ошибке и завершает работу приложения
