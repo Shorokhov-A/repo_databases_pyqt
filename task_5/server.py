@@ -81,6 +81,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
     # Обработчик сообщений от клиентов, принимает словарь - сообщение от клиента,
     # проверяет корректность, отправляет словарь-ответ в случае необходимости.
     def process_client_message(self, message, client):
+        global new_connection
         SERVER_LOGGER.debug(f'Разбор сообщения от клиента: {message}.')
 
         # Если это сообщение о присутствии, принимаем и отвечаем.
@@ -93,6 +94,8 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                 client_ip, client_port = client.getpeername()
                 self.database.user_login(message[USER][ACCOUNT_NAME], client_ip, client_port)
                 send_message(client, RESPONSE_200)
+                with conflag_lock:
+                    new_connection = True
             else:
                 response = RESPONSE_400
                 response[ERROR] = 'Имя пользователя уже занято.'
@@ -101,18 +104,30 @@ class Server(threading.Thread, metaclass=ServerVerifier):
                 client.close()
             return
 
-        # Если это сообщение, то добавляем его в очередь сообщений. Ответ не требуется.
+        # Если это сообщение, то добавляем его в очередь сообщений,
+        # проверяем наличие в сети и отвечаем.
         elif ACTION in message and message[ACTION] == MESSAGE and DESTINATION in message and TIME in message \
-                and SENDER in message and MESSAGE_TEXT in message:
-            self.messages.append(message)
+                and SENDER in message and MESSAGE_TEXT in message and self.names[message[SENDER]] == client:
+            if message[DESTINATION] in self.names:
+                self.messages.append(message)
+                self.database.process_message(message[SENDER], message[DESTINATION])
+                send_message(client, RESPONSE_200)
+            else:
+                response = RESPONSE_400
+                response[ERROR] = 'Пользователь не зарегистрирован на сервере.'
+                send_message(client, response)
             return
 
         # Если клиент выходит:
-        elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message:
+        elif ACTION in message and message[ACTION] == EXIT and ACCOUNT_NAME in message \
+                and self.names[message[ACCOUNT_NAME]] == client:
             self.database.user_logout(message[ACCOUNT_NAME])
+            SERVER_LOGGER.info(f'Клиент {message[ACCOUNT_NAME]} корректно отключился от сервера.')
             self.clients.remove(self.names[message[ACCOUNT_NAME]])
             self.names[message[ACCOUNT_NAME]].close()
             del self.names[message[ACCOUNT_NAME]]
+            with conflag_lock:
+                new_connection = True
             return
 
         # Если это запрос списка контактов
@@ -164,6 +179,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
 
     def run(self):
         # Инициализация Сокета
+        global new_connection
         self.init_socket()
 
         # Основной цикл программы:
@@ -185,26 +201,56 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             try:
                 if self.clients:
                     recv_data_list, send_data_list, err_list = select.select(self.clients, self.clients, [], 0)
-            except OSError:
-                pass
+            except OSError as err:
+                SERVER_LOGGER.error(f'Ошибка работы с сокетами: {err}')
 
             # Принимаем сообщения и еcли они есть, то кладем в словарь. В случае ошибки исключаем клиента.
             if recv_data_list:
                 for client_with_message in recv_data_list:
                     try:
                         self.process_client_message(get_message(client_with_message), client_with_message)
-                    except:
+                    except OSError:
+                        # Ищем клиента в словаре клиентов
+                        # и удаляем его из него и базы подключённых
                         SERVER_LOGGER.info(f'Клиент {client_with_message.getpeername()} отключился от сервера.')
+                        for name in self.names:
+                            if self.names[name] == client_with_message:
+                                self.database.user_logout(name)
+                                del self.names[name]
+                                break
                         self.clients.remove(client_with_message)
+                        with conflag_lock:
+                            new_connection = True
+
             # Если есть сообщения, то обрабатываем каждое.
             for message in self.messages:
                 try:
                     self.process_message(message, send_data_list)
-                except Exception as e:
-                    SERVER_LOGGER.info(f'Связь с клиентом с именем {message[DESTINATION]} была потеряна, ошибка {e}.')
+                except (ConnectionAbortedError, ConnectionError, ConnectionResetError, ConnectionRefusedError):
+                    SERVER_LOGGER.info(f'Связь с клиентом с именем {message[DESTINATION]} была потеряна.')
                     self.clients.remove(self.names[message[DESTINATION]])
+                    self.database.user_logout(message[DESTINATION])
                     del self.names[message[DESTINATION]]
+                    with conflag_lock:
+                        new_connection = True
             self.messages.clear()
+
+
+# Загрузка файла конфигурации
+def config_load():
+    config = configparser.ConfigParser()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    config.read(f"{dir_path}/{'server.ini'}")
+    # Если конфиг файл загружен правильно, запускаемся, иначе конфиг по умолчанию.
+    if 'SETTINGS' in config:
+        return config
+    else:
+        config.add_section('SETTINGS')
+        config.set('SETTINGS', 'Default_port', str(DEFAULT_PORT))
+        config.set('SETTINGS', 'Listen_Address', '')
+        config.set('SETTINGS', 'Database_path', '')
+        config.set('SETTINGS', 'Database_file', 'server_database.db3')
+        return config
 
 
 def main():
@@ -213,8 +259,7 @@ def main():
     def list_update():
         global new_connection
         if new_connection:
-            main_window.active_clients_table.setModel(
-                gui_create_model(database))
+            main_window.active_clients_table.setModel(gui_create_model(database))
             main_window.active_clients_table.resizeColumnsToContents()
             main_window.active_clients_table.resizeRowsToContents()
             with conflag_lock:
@@ -262,10 +307,7 @@ def main():
         config_window.save_btn.clicked.connect(save_server_config)
 
     # Загрузка файла конфигурации сервера
-    config = configparser.ConfigParser()
-
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    config.read(f"{dir_path}/{'server.ini'}")
+    config = config_load()
 
     # Загрузка параметров командной строки, если нет параметров, то задаём значения по умолчанию.
     listen_address, listen_port = arg_parser(config['SETTINGS']['Default_port'], config['SETTINGS']['Listen_Address'])
