@@ -204,7 +204,7 @@ class Server(threading.Thread, metaclass=ServerVerifier):
             except OSError as err:
                 SERVER_LOGGER.error(f'Ошибка работы с сокетами: {err}')
 
-            # Принимаем сообщения и еcли они есть, то кладем в словарь. В случае ошибки исключаем клиента.
+            # Принимаем сообщения и еcли ошибка, исключаем клиента.
             if recv_data_list:
                 for client_with_message in recv_data_list:
                     try:
@@ -288,8 +288,8 @@ def main():
             config['SETTINGS']['Listen_Address'] = config_window.ip.text()
             if 1023 < port < 65536:
                 config['SETTINGS']['Default_port'] = str(port)
-                print(port)
-                with open('server.ini', 'w') as conf:
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                with open(f"{dir_path}/{'server_dist.ini'}", 'w') as conf:
                     config.write(conf)
                     message.information(config_window, 'OK', 'Настройки успешно сохранены!')
             else:
