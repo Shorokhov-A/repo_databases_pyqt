@@ -1,6 +1,6 @@
 .idea
 __pycache__
-server_base.db3
+server_database.db3
 client_*.db3
 client.log*
 server.log*
