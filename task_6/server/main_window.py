@@ -6,6 +6,7 @@ import sys
 sys.path.append('../')
 from server.stat_window import StatWindow
 from server.config_window import ConfigWindow
+from server.add_user import RegisterUser
 
 
 class MainWindow(QMainWindow):
@@ -124,3 +125,9 @@ class MainWindow(QMainWindow):
         global config_window
         # Создаём окно и заносим в него текущие параметры
         config_window = ConfigWindow(self.config)
+
+    def reg_user(self):
+        """Метод создающий окно регистрации пользователя."""
+        global reg_window
+        reg_window = RegisterUser(self.database, self.server_thread)
+        reg_window.show()
