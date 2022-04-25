@@ -1,6 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QLabel, QTableView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import QTimer
+import sys
+
+sys.path.append('../')
+from server.stat_window import StatWindow
 
 
 class MainWindow(QMainWindow):
@@ -104,3 +108,12 @@ class MainWindow(QMainWindow):
         self.active_clients_table.setModel(list)
         self.active_clients_table.resizeColumnsToContents()
         self.active_clients_table.resizeRowsToContents()
+
+    def show_statistics(self):
+        """
+        Метод создающий окно со статистикой клиентов.
+        :return:
+        """
+        global stat_window
+        stat_window = StatWindow(self.database)
+        stat_window.show()
