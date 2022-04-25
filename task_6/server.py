@@ -4,7 +4,7 @@ import argparse
 import configparser
 import os
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import Qt
 
 import logs.server_log_config
 from common.variables import *
