@@ -176,7 +176,7 @@ class ClientTransport(threading.Thread, QObject):
                 and MESSAGE_TEXT in message \
                 and message[DESTINATION] == self.username:
             CLIENT_LOGGER.debug(f'Получено сообщение от пользователя {message[SENDER]}:{message[MESSAGE_TEXT]}')
-            self.new_message.emit(message[SENDER])
+            self.new_message.emit(message)
 
     def contacts_list_update(self):
         """
