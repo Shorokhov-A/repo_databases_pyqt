@@ -25,7 +25,8 @@ SOCKET_LOCK = threading.Lock()
 # Класс - Транспорт, отвечает за взаимодействие с сервером
 class ClientTransport(threading.Thread, QObject):
     # Сигналы новое сообщение и потеря соединения
-    new_message = pyqtSignal(str)
+    new_message = pyqtSignal(dict)
+    message_205 = pyqtSignal()
     connection_lost = pyqtSignal()
 
     def __init__(self, port, ip_address, database, username, passwd, keys):
@@ -157,6 +158,10 @@ class ClientTransport(threading.Thread, QObject):
                 return
             elif message[RESPONSE] == 400:
                 raise ServerError(f'{message[ERROR]}')
+            elif message[RESPONSE] == 205:
+                self.user_list_update()
+                self.contacts_list_update()
+                self.message_205.emit()
             else:
                 CLIENT_LOGGER.debug(f'Принят неизвестный код подтверждения {message[RESPONSE]}')
 
