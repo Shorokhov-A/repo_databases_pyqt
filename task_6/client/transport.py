@@ -22,8 +22,11 @@ CLIENT_LOGGER = logging.getLogger('client')
 SOCKET_LOCK = threading.Lock()
 
 
-# Класс - Транспорт, отвечает за взаимодействие с сервером
 class ClientTransport(threading.Thread, QObject):
+    """
+    Класс реализующий транспортную подсистему клиентского
+    модуля. Отвечает за взаимодействие с сервером.
+    """
     # Сигналы новое сообщение и потеря соединения
     new_message = pyqtSignal(dict)
     message_205 = pyqtSignal()
@@ -175,8 +178,12 @@ class ClientTransport(threading.Thread, QObject):
             CLIENT_LOGGER.debug(f'Получено сообщение от пользователя {message[SENDER]}:{message[MESSAGE_TEXT]}')
             self.new_message.emit(message[SENDER])
 
-    # Функция, обновляющая контакт - лист с сервера
     def contacts_list_update(self):
+        """
+        Метод обновляющий с сервера список контактов.
+        :return:
+        """
+        self.database.contacts_clear()
         CLIENT_LOGGER.debug(f'Запрос списка контактов для пользователя {self.name}')
         request_to_server = {
             ACTION: GET_CONTACTS,
@@ -194,8 +201,11 @@ class ClientTransport(threading.Thread, QObject):
         else:
             CLIENT_LOGGER.error('Не удалось обновить список контактов.')
 
-    # Функция обновления таблицы известных пользователей.
     def user_list_update(self):
+        """
+        Метод обновляющий с сервера список пользователей.
+        :return:
+        """
         CLIENT_LOGGER.debug(f'Запрос списка известных пользователей {self.username}')
         request_to_server = {
             ACTION: USERS_REQUEST,
@@ -210,8 +220,32 @@ class ClientTransport(threading.Thread, QObject):
         else:
             CLIENT_LOGGER.error('Не удалось обновить список известных пользователей.')
 
-    # Функция сообщающая на сервер о добавлении нового контакта
+    def key_request(self, user):
+        """
+        Метод запрашивающий с сервера публичный ключ пользователя.
+        :param user:
+        :return:
+        """
+        CLIENT_LOGGER.debug(f'Запрос публичного ключа для {user}')
+        req = {
+            ACTION: PUBLIC_KEY_REQUEST,
+            TIME: time.time(),
+            ACCOUNT_NAME: user
+        }
+        with SOCKET_LOCK:
+            send_message(self.transport, req)
+            ans = get_message(self.transport)
+        if RESPONSE in ans and ans[RESPONSE] == 511:
+            return ans[DATA]
+        else:
+            CLIENT_LOGGER.error(f'Не удалось получить ключ собеседника{user}.')
+
     def add_contact(self, contact):
+        """
+        Метод отправляющий на сервер сведения о добавлении контакта.
+        :param contact:
+        :return:
+        """
         CLIENT_LOGGER.debug(f'Создание контакта {contact}')
         request_to_server = {
             ACTION: ADD_CONTACT,
@@ -223,8 +257,12 @@ class ClientTransport(threading.Thread, QObject):
             send_message(self.transport, request_to_server)
             self.process_server_ans(get_message(self.transport))
 
-    # Функция удаления клиента на сервере
     def remove_contact(self, contact):
+        """
+        Метод отправляющий на сервер сведения о удалении контакта.
+        :param contact:
+        :return:
+        """
         CLIENT_LOGGER.debug(f'Удаление контакта {contact}')
         request_to_server = {
             ACTION: REMOVE_CONTACT,
@@ -236,8 +274,11 @@ class ClientTransport(threading.Thread, QObject):
             send_message(self.transport, request_to_server)
             self.process_server_ans(get_message(self.transport))
 
-    # Функция закрытия соединения, отправляет сообщение о выходе.
     def transport_shutdown(self):
+        """
+        Метод уведомляющий сервер о завершении работы клиента.
+        :return:
+        """
         self.running = False
         message = {
             ACTION: EXIT,
@@ -254,6 +295,12 @@ class ClientTransport(threading.Thread, QObject):
 
     # Функция отправки сообщения на сервер
     def send_message(self, to, message):
+        """
+        Метод отправляющий на сервер сообщения для пользователя.
+        :param to:
+        :param message:
+        :return:
+        """
         message_dict = {
             ACTION: MESSAGE,
             SENDER: self.username,
@@ -270,31 +317,35 @@ class ClientTransport(threading.Thread, QObject):
             CLIENT_LOGGER.info(f'Отправлено сообщение для пользователя {to}')
 
     def run(self):
+        """
+        Метод содержащий основной цикл работы транспортного потока.
+        :return:
+        """
         CLIENT_LOGGER.debug('Запущен процесс - приёмник сообщений с сервера.')
         while self.running:
-            # Отдыхаем секунду и снова пробуем захватить сокет. Если не сделать тут задержку,
-            # то отправка может достаточно долго ждать освобождения сокета.
+            # Отдыхаем секунду и снова пробуем захватить сокет.
+            # если не сделать тут задержку, то отправка может достаточно долго
+            # ждать освобождения сокета.
             time.sleep(1)
+            message = None
             with SOCKET_LOCK:
                 try:
                     self.transport.settimeout(0.5)
                     message = get_message(self.transport)
                 except OSError as err:
                     if err.errno:
-                        # выход по таймауту вернёт номер ошибки err.errno равный None
-                        # поэтому, при выходе по таймауту мы сюда не попадём
                         CLIENT_LOGGER.critical(f'Потеряно соединение с сервером.')
                         self.running = False
                         self.connection_lost.emit()
                 # Проблемы с соединением
-                except (ConnectionError, ConnectionAbortedError,
-                        ConnectionResetError, json.JSONDecodeError, TypeError):
+                except (ConnectionError, ConnectionAbortedError, ConnectionResetError, json.JSONDecodeError, TypeError):
                     CLIENT_LOGGER.debug(f'Потеряно соединение с сервером.')
                     self.running = False
                     self.connection_lost.emit()
-                # Если сообщение получено, то вызываем функцию обработчик:
-                else:
-                    CLIENT_LOGGER.debug(f'Принято сообщение с сервера: {message}')
-                    self.process_server_ans(message)
                 finally:
                     self.transport.settimeout(5)
+
+            # Если сообщение получено, то вызываем функцию обработчик:
+            if message:
+                CLIENT_LOGGER.debug(f'Принято сообщение с сервера: {message}')
+                self.process_server_ans(message)
