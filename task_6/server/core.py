@@ -13,6 +13,7 @@ import logs.server_log_config
 from common.variables import *
 from common.utils import get_message, send_message
 from common.descriptors import Port
+from common.decorators import login_required
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
@@ -75,6 +76,7 @@ class MessageProcessor(threading.Thread,):
         self.sock = transport
         self.sock.listen(MAX_CONNECTIONS)
 
+    @login_required
     def process_client_message(self, message, client):
         """
         Метод обработчик поступающих сообщений.
