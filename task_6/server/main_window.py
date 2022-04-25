@@ -7,6 +7,7 @@ sys.path.append('../')
 from server.stat_window import StatWindow
 from server.config_window import ConfigWindow
 from server.add_user import RegisterUser
+from server.remove_user import DelUserDialog
 
 
 class MainWindow(QMainWindow):
@@ -121,13 +122,28 @@ class MainWindow(QMainWindow):
         stat_window.show()
 
     def server_config(self):
-        """Метод создающий окно с настройками сервера."""
+        """
+        Метод создающий окно с настройками сервера.
+        :return:
+        """
         global config_window
         # Создаём окно и заносим в него текущие параметры
         config_window = ConfigWindow(self.config)
 
     def reg_user(self):
-        """Метод создающий окно регистрации пользователя."""
+        """
+        Метод создающий окно регистрации пользователя.
+        :return:
+        """
         global reg_window
         reg_window = RegisterUser(self.database, self.server_thread)
         reg_window.show()
+
+    def rem_user(self):
+        """
+        Метод создающий окно удаления пользователя.
+        :return:
+        """
+        global rem_window
+        rem_window = DelUserDialog(self.database, self.server_thread)
+        rem_window.show()
