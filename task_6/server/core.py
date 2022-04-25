@@ -12,7 +12,7 @@ sys.path.append('../')
 import logs.server_log_config
 from common.variables import *
 from common.utils import get_message, send_message
-from descriptors import Port
+from common.descriptors import Port
 
 # Инициализация логирования сервера:
 SERVER_LOGGER = logging.getLogger('server')
