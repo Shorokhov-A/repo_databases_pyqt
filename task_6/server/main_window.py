@@ -5,6 +5,7 @@ import sys
 
 sys.path.append('../')
 from server.stat_window import StatWindow
+from server.config_window import ConfigWindow
 
 
 class MainWindow(QMainWindow):
@@ -117,3 +118,9 @@ class MainWindow(QMainWindow):
         global stat_window
         stat_window = StatWindow(self.database)
         stat_window.show()
+
+    def server_config(self):
+        """Метод создающий окно с настройками сервера."""
+        global config_window
+        # Создаём окно и заносим в него текущие параметры
+        config_window = ConfigWindow(self.config)
