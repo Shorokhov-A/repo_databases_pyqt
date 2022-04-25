@@ -1,4 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QAction, qApp, QLabel, QTableView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtCore import QTimer
 
 
@@ -77,3 +78,29 @@ class MainWindow(QMainWindow):
 
         # Последним параметром отображаем окно.
         self.show()
+
+    def create_users_model(self):
+        """
+        Метод заполняющий таблицу активных пользователей.
+        :return:
+        """
+        list_users = self.database.active_users_list()
+        list = QStandardItemModel()
+        list.setHorizontalHeaderLabels(
+            ['Имя Клиента', 'IP Адрес', 'Порт', 'Время подключения'])
+        for row in list_users:
+            user, ip, port, time = row
+            user = QStandardItem(user)
+            user.setEditable(False)
+            ip = QStandardItem(ip)
+            ip.setEditable(False)
+            port = QStandardItem(str(port))
+            port.setEditable(False)
+            # Уберём милисекунды из строки времени, т.к. такая точность не
+            # требуется.
+            time = QStandardItem(str(time.replace(microsecond=0)))
+            time.setEditable(False)
+            list.appendRow([user, ip, port, time])
+        self.active_clients_table.setModel(list)
+        self.active_clients_table.resizeColumnsToContents()
+        self.active_clients_table.resizeRowsToContents()
