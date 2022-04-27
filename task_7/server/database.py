@@ -135,11 +135,11 @@ class ServerStorage:
         """
         Метод выполняющийся при входе пользователя, записывает в базу факт входа
         обновляет открытый ключ пользователя при его изменении.
-        :param username:
-        :param ip_address:
-        :param port:
-        :param key:
-        :return:
+        :param username: логин
+        :param ip_address: ip-адрес
+        :param port: порт
+        :param key: ключ
+        :return: ничего не возвращает
         """
         # Запрос в таблицу пользователей на наличие там пользователя с таким именем
         result = self.session.query(self.AllUsers).filter_by(name=username)
@@ -171,9 +171,9 @@ class ServerStorage:
         """
         Метод регистрации пользователя.
         Принимает имя и хэш пароля, создаёт запись в таблице статистики.
-        :param name:
-        :param passwd_hash:
-        :return:
+        :param name: логин
+        :param passwd_hash: хэш пароля
+        :return: ничего не возвращает
         """
         user_row = self.AllUsers(name, passwd_hash)
         self.session.add(user_row)
@@ -185,8 +185,8 @@ class ServerStorage:
     def remove_user(self, name):
         """
         Метод удаляющий пользователя из базы.
-        :param name:
-        :return:
+        :param name: логин
+        :return: ничего не возвращает
         """
         user = self.session.query(self.AllUsers).filter_by(name=name).first()
         self.session.query(self.ActiveUsers).filter_by(user=user.id).delete()
@@ -202,8 +202,8 @@ class ServerStorage:
     def get_hash(self, name):
         """
         Метод получения хэша пароля пользователя.
-        :param name:
-        :return:
+        :param name: логин
+        :return: хэша пароля
         """
         user = self.session.query(self.AllUsers).filter_by(name=name).first()
         return user.passwd_hash
@@ -211,8 +211,8 @@ class ServerStorage:
     def get_pubkey(self, name):
         """
         Метод получения публичного ключа пользователя.
-        :param name:
-        :return:
+        :param name: логин
+        :return: публичный ключ пользователя
         """
         user = self.session.query(self.AllUsers).filter_by(name=name).first()
         return user.pubkey
@@ -220,8 +220,8 @@ class ServerStorage:
     def check_user(self, name):
         """
         Метод проверяющий существование пользователя.
-        :param name:
-        :return:
+        :param name: логин
+        :return: True или False
         """
         if self.session.query(self.AllUsers).filter_by(name=name).count():
             return True
@@ -231,8 +231,8 @@ class ServerStorage:
     def user_logout(self, username):
         """
         Метод фиксирующий отключения пользователя.
-        :param username:
-        :return:
+        :param username: логин
+        :return: ничего не возвращает
         """
         # Запрашиваем пользователя, который отключается.
         user = self.session.query(self.AllUsers).filter_by(name=username).first()
@@ -246,7 +246,7 @@ class ServerStorage:
     def users_list(self):
         """
         Метод возвращающий список известных пользователей со временем последнего входа.
-        :return:
+        :return: список известных пользователей со временем последнего входа
         """
         # Запрос строк таблицы пользователей.
         query = self.session.query(
@@ -259,7 +259,7 @@ class ServerStorage:
     def active_users_list(self):
         """
         Метод возвращающий список активных пользователей.
-        :return:
+        :return: список активных пользователей
         """
         # Запрашиваем соединение таблиц и собираем кортежи имя, адрес, порт, время.
         query = self.session.query(
@@ -274,8 +274,8 @@ class ServerStorage:
     def login_history(self, username=None):
         """
         Метод возвращающий историю входов.
-        :param username:
-        :return:
+        :param username: логин
+        :return: история входов пользователя
         """
         # Запрашиваем историю входа
         query = self.session.query(self.AllUsers.name,
@@ -292,8 +292,8 @@ class ServerStorage:
     def get_contacts(self, username):
         """
         Метод возвращающий список контактов пользователя.
-        :param username:
-        :return:
+        :param username: логин
+        :return: список контактов пользователя
         """
         # Запрашиваем указанного пользователя
         user = self.session.query(self.AllUsers).filter_by(name=username).one()
@@ -309,9 +309,9 @@ class ServerStorage:
     def add_contact(self, user, contact):
         """
         Метод добавления контакта для пользователя.
-        :param user:
-        :param contact:
-        :return:
+        :param user: логин
+        :param contact: контакт
+        :return: ничего не возвращает
         """
         # Получаем ID пользователей
         user = self.session.query(self.AllUsers).filter_by(name=user).first()
@@ -329,9 +329,9 @@ class ServerStorage:
     def remove_contact(self, user, contact):
         """
         Метод удаления контакта пользователя.
-        :param user:
-        :param contact:
-        :return:
+        :param user: логин
+        :param contact: контакт
+        :return: ничего не возвращает
         """
         # Получаем ID пользователей
         user = self.session.query(self.AllUsers).filter_by(name=user).first()
@@ -349,9 +349,9 @@ class ServerStorage:
     def process_message(self, sender, recipient):
         """
         Метод записывающий в таблицу статистики факт передачи сообщения.
-        :param sender:
-        :param recipient:
-        :return:
+        :param sender: отправитель
+        :param recipient: получатель
+        :return: ничего не возвращает
         """
         # Получаем ID отправителя и получателя
         sender = self.session.query(self.AllUsers).filter_by(name=sender).first().id
@@ -367,7 +367,7 @@ class ServerStorage:
     def message_history(self):
         """
         Метод возвращающий статистику сообщений.
-        :return:
+        :return: статистика сообщений
         """
         query = self.session.query(
             self.AllUsers.name,
