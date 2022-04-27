@@ -13,6 +13,14 @@ else:
 
 
 def log(func):
+    """
+    Декоратор, выполняющий логирование вызовов функций.
+    Сохраняет события типа debug, содержащие
+    информацию о имени вызываемой функиции, параметры с которыми
+    вызывается функция, и модуль, вызывающий функцию.
+    :param func:
+    :return:
+    """
     def decorated(*args, **kwargs):
         func_to_log = func(*args, **kwargs)
         LOGGER.debug(f'Функция {func.__name__}() вызвана из функции {traceback.format_stack()[0].strip().split()[-1]}')
