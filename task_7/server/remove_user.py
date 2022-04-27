@@ -41,7 +41,7 @@ class DelUserDialog(QDialog):
     def all_users_fill(self):
         """
         Метод заполняющий список пользователей.
-        :return:
+        :return: ничего не возвращает
         """
         self.selector.addItems([item[0]
                                 for item in self.database.users_list()])
@@ -49,7 +49,7 @@ class DelUserDialog(QDialog):
     def remove_user(self):
         """
         Метод - обработчик удаления пользователя.
-        :return:
+        :return: ничего не возвращает
         """
         self.database.remove_user(self.selector.currentText())
         if self.selector.currentText() in self.server.names:
