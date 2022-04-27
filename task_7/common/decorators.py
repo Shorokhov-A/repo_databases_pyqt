@@ -18,8 +18,6 @@ def log(func):
     Сохраняет события типа debug, содержащие
     информацию о имени вызываемой функиции, параметры с которыми
     вызывается функция, и модуль, вызывающий функцию.
-    :param func:
-    :return:
     """
     def decorated(*args, **kwargs):
         func_to_log = func(*args, **kwargs)
@@ -36,8 +34,6 @@ def login_required(func):
     За исключением передачи словаря-запроса
     на авторизацию. Если клиент не авторизован,
     генерирует исключение TypeError
-    :param func:
-    :return:
     """
 
     def checker(*args, **kwargs):
