@@ -19,8 +19,13 @@ from common.errors import ServerError
 CLIENT_LOGGER = logging.getLogger('client')
 
 
-# Класс основного окна
 class ClientMainWindow(QMainWindow):
+    """
+    Класс - основное окно пользователя.
+    Содержит всю основную логику работы клиентского модуля.
+    Конфигурация окна создана в QTDesigner и загружается из
+    конвертированого файла main_window_conv.py
+    """
     def __init__(self, database, transport, keys):
         super().__init__()
         # основные переменные
