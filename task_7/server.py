@@ -21,9 +21,9 @@ SERVER_LOGGER = logging.getLogger('server')
 def arg_parser(default_port, default_address):
     """
     Парсер аргументов командной строки.
-    :param default_port:
-    :param default_address:
-    :return:
+    :param default_port: порт
+    :param default_address: ip-адрес
+    :return: ip-адрес, порт, gui-флаг
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', default=default_port, type=int, nargs='?')
@@ -41,7 +41,7 @@ def arg_parser(default_port, default_address):
 def config_load():
     """
     Парсер конфигурационного ini файла.
-    :return:
+    :return: словарь, содержащий параметры конфигурации сервера
     """
     config = configparser.ConfigParser()
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -62,7 +62,7 @@ def config_load():
 def main():
     """
     Основная функция.
-    :return:
+    :return: ничего не возвращает
     """
     # Загрузка файла конфигурации сервера
     config = config_load()
