@@ -89,7 +89,7 @@ class MainWindow(QMainWindow):
     def create_users_model(self):
         """
         Метод заполняющий таблицу активных пользователей.
-        :return:
+        :return: ничего не возвращает
         """
         list_users = self.database.active_users_list()
         list = QStandardItemModel()
@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
     def show_statistics(self):
         """
         Метод создающий окно со статистикой клиентов.
-        :return:
+        :return: ничего не возвращает
         """
         global stat_window
         stat_window = StatWindow(self.database)
@@ -124,7 +124,7 @@ class MainWindow(QMainWindow):
     def server_config(self):
         """
         Метод создающий окно с настройками сервера.
-        :return:
+        :return: ничего не возвращает
         """
         global config_window
         # Создаём окно и заносим в него текущие параметры
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
     def reg_user(self):
         """
         Метод создающий окно регистрации пользователя.
-        :return:
+        :return: ничего не возвращает
         """
         global reg_window
         reg_window = RegisterUser(self.database, self.server_thread)
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
     def rem_user(self):
         """
         Метод создающий окно удаления пользователя.
-        :return:
+        :return: ничего не возвращает
         """
         global rem_window
         rem_window = DelUserDialog(self.database, self.server_thread)
