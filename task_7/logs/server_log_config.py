@@ -1,4 +1,3 @@
-"""Конфиг серверного логгера"""
 import logging
 import os
 import sys

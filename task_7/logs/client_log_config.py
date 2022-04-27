@@ -1,4 +1,3 @@
-"""Конфиг клиентского логгера"""
 import logging
 import os
 import sys
