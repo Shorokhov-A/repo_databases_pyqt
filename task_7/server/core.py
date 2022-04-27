@@ -60,7 +60,7 @@ class MessageProcessor(threading.Thread,):
     def init_socket(self):
         """
         Метод инициализатор сокета.
-        :return:
+        :return: ничего не возвращает
         """
         SERVER_LOGGER.info(f'Запущен сервер. Порт для подключений: {self.port}, '
                            f'адрес, с которого принимаются подключения: {self.addr}. '
@@ -80,9 +80,9 @@ class MessageProcessor(threading.Thread,):
     def process_client_message(self, message, client):
         """
         Метод обработчик поступающих сообщений.
-        :param message:
-        :param client:
-        :return:
+        :param message: сообщение
+        :param client: пользователь
+        :return: ничего не возвращает
         """
         SERVER_LOGGER.debug(f'Разбор сообщения от клиента: {message}.')
 
@@ -185,8 +185,8 @@ class MessageProcessor(threading.Thread,):
     def process_message(self, message):
         """
         Метод отправки сообщения клиенту.
-        :param message:
-        :return:
+        :param message: сообщение
+        :return: ничего не возвращает
         """
         if message[DESTINATION] in self.names and self.names[message[DESTINATION]] in self.listen_sockets:
             try:
@@ -206,7 +206,7 @@ class MessageProcessor(threading.Thread,):
     def run(self):
         """
         Метод основной цикл потока.
-        :return:
+        :return: ничего не возвращает
         """
         # Инициализация Сокета
         self.init_socket()
@@ -247,8 +247,8 @@ class MessageProcessor(threading.Thread,):
         """
         Метод обработчик клиента с которым прервана связь.
         Ищет клиента и удаляет его из списков и базы:
-        :param client:
-        :return:
+        :param client: клиент
+        :return: ничего не возвращает
         """
         SERVER_LOGGER.info(f'Клиент {client.getpeername()} отключился от сервера.')
         for name in self.names:
@@ -262,9 +262,9 @@ class MessageProcessor(threading.Thread,):
     def autorize_user(self, message, sock):
         """
         Метод реализующий авторизацию пользователей.
-        :param message:
-        :param sock:
-        :return:
+        :param message: сообщение
+        :param sock: сокет
+        :return: ничего не возвращает
         """
         # Если имя пользователя уже занято то возвращаем 400
         SERVER_LOGGER.debug(f'Start auth process for {message[USER]}')
@@ -343,7 +343,7 @@ class MessageProcessor(threading.Thread,):
     def service_update_lists(self):
         """
         Метод реализующий отправки сервисного сообщения 205 клиентам.
-        :return:
+        :return: ничего не возвращает
         """
         for client in self.names:
             try:
