@@ -73,7 +73,7 @@ class ClientMainWindow(QMainWindow):
     def set_disabled_input(self):
         """
         Метод делающий поля ввода неактивными.
-        :return:
+        :return: ничего не возвращает
         """
         # Надпись  - получатель.
         self.ui.label_new_message.setText('Для выбора получателя дважды кликните на нем в окне контактов.')
@@ -93,7 +93,7 @@ class ClientMainWindow(QMainWindow):
     def clients_list_update(self):
         """
         Метод обновляющий список контактов.
-        :return:
+        :return: ничего не возвращает
         """
         contacts_list = self.database.get_contacts()
         self.contacts_model = QStandardItemModel()
@@ -106,7 +106,7 @@ class ClientMainWindow(QMainWindow):
     def add_contact_window(self):
         """
         Метод создающий окно - диалог добавления контакта
-        :return:
+        :return: ничего не возвращает
         """
         global select_dialog
         select_dialog = AddContactDialog(self.transport, self.database)
@@ -117,7 +117,7 @@ class ClientMainWindow(QMainWindow):
         """
         Метод обработчк нажатия кнопки "Добавить"
         :param item:
-        :return:
+        :return: ничего не возвращает
         """
         new_contact = item.selector.currentText()
         self.add_contact(new_contact)
@@ -127,8 +127,8 @@ class ClientMainWindow(QMainWindow):
         """
         Метод добавляющий контакт в серверную и клиентсткую BD.
         После обновления баз данных обновляет и содержимое окна.
-        :param new_contact:
-        :return:
+        :param new_contact: новый контакт
+        :return: ничего не возвращает
         """
         try:
             self.transport.add_contact(new_contact)
@@ -150,7 +150,7 @@ class ClientMainWindow(QMainWindow):
     def delete_contact_window(self):
         """
         Метод создающий окно удаления контакта.
-        :return:
+        :return: ничего не возвращает
         """
         global remove_dialog
         remove_dialog = DelContactDialog(self.database)
@@ -162,7 +162,7 @@ class ClientMainWindow(QMainWindow):
         Метод удаляющий контакт из серверной и клиентсткой BD.
         После обновления баз данных обновляет и содержимое окна.
         :param item:
-        :return:
+        :return: ничего не возвращает
         """
         selected = item.selector.currentText()
         try:
@@ -188,7 +188,7 @@ class ClientMainWindow(QMainWindow):
     def select_active_user(self):
         """
         Метод обработчик события двойного клика по списку контактов.
-        :return:
+        :return: ничего не возвращает
         """
         # Выбранный пользователем контакт находится в выделенном элементе в QListView
         self.current_chat = self.ui.list_contacts.currentIndex().data()
@@ -198,7 +198,7 @@ class ClientMainWindow(QMainWindow):
     def set_active_user(self):
         """
         Метод активации чата с собеседником.
-        :return:
+        :return: ничего не возвращает
         """
         # Запрашиваем публичный ключ пользователя и создаём объект шифрования
         try:
@@ -233,7 +233,7 @@ class ClientMainWindow(QMainWindow):
         """
         Метод заполняющий соответствующий QListView
         историей переписки с текущим собеседником.
-        :return:
+        :return: ничего не возвращает
         """
         # Получаем историю сортированную по дате
         list_messages = sorted(self.database.get_history(self.current_chat),
@@ -272,7 +272,7 @@ class ClientMainWindow(QMainWindow):
         """
         Функция отправки сообщения текущему собеседнику.
         Реализует шифрование сообщения и его отправку.
-        :return:
+        :return: ничего не возвращает
         """
         # Текст в поле, проверяем что поле не пустое затем забирается сообщение
         # и поле очищается
@@ -315,8 +315,8 @@ class ClientMainWindow(QMainWindow):
         поступаемых сообщений и их сохранение в истории сообщений.
         Запрашивает пользователя если пришло сообщение не от текущего
         собеседника. При необходимости меняет собеседника.
-        :param message:
-        :return:
+        :param message: поступаемое сообщение
+        :return: ничего не возвращает
         """
         # Получаем строку байтов
         encrypted_message = base64.b64decode(message[MESSAGE_TEXT])
@@ -374,7 +374,7 @@ class ClientMainWindow(QMainWindow):
         """
         Слот обработчик потери соеднинения с сервером.
         Выдаёт окно предупреждение и завершает работу приложения.
-        :return:
+        :return: ничего не возвращает
         """
         self.messages.warning(self, 'Сбой соединения', 'Потеряно соединение с сервером.')
         self.close()
@@ -383,7 +383,7 @@ class ClientMainWindow(QMainWindow):
     def sig_205(self):
         """
         Слот выполняющий обновление баз данных по команде сервера.
-        :return:
+        :return: ничего не возвращает
         """
         if self.current_chat and not self.database.check_user(
                 self.current_chat):
@@ -398,19 +398,9 @@ class ClientMainWindow(QMainWindow):
     def make_connection(self, trans_obj):
         """
         Метод обеспечивающий соединение сигналов и слотов.
-        :param trans_obj:
-        :return:
+        :param trans_obj: объект-транспорт
+        :return: ничего не возвращает
         """
         trans_obj.new_message.connect(self.message)
         trans_obj.connection_lost.connect(self.connection_lost)
         trans_obj.message_205.connect(self.sig_205)
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    from database import ClientDatabase
-    database = ClientDatabase('test1')
-    from transport import ClientTransport
-    transport = ClientTransport(7777, '127.0.0.1', database, 'test1')
-    window = ClientMainWindow(database, transport)
-    sys.exit(app.exec_())
