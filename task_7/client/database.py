@@ -94,8 +94,8 @@ class ClientDatabase:
     def add_users(self, users_list):
         """
         Метод, заполняющий таблицу известных пользователей.
-        :param users_list:
-        :return:
+        :param users_list: список пользователей
+        :return: ничего не возвращает
         """
         self.session.query(self.KnownUsers).delete()
         for user in users_list:
@@ -106,8 +106,8 @@ class ClientDatabase:
     def add_contact(self, contact):
         """
         Метод добавляющий контакт в базу данных.
-        :param contact:
-        :return:
+        :param contact: добавляемый контакт
+        :return: ничего не возвращает
         """
         if not self.session.query(self.Contacts).filter_by(name=contact).count():
             contact_row = self.Contacts(contact)
@@ -117,7 +117,7 @@ class ClientDatabase:
     def contacts_clear(self):
         """
         Метод, очищающий таблицу со списком контактов.
-        :return:
+        :return: ничего не возвращает
         """
         self.session.query(self.Contacts).delete()
         self.session.commit()
@@ -125,8 +125,8 @@ class ClientDatabase:
     def del_contact(self, contact):
         """
         Метод, удаляющий определённый контакт.
-        :param contact:
-        :return:
+        :param contact: удаляемый контакт
+        :return: ничего не возвращает
         """
         self.session.query(self.Contacts).filter_by(name=contact).delete()
         self.session.commit()
@@ -134,8 +134,8 @@ class ClientDatabase:
     def check_user(self, user):
         """
         Метод, проверяющий существует ли пользователь.
-        :param user:
-        :return:
+        :param user: проверяемый пользователь
+        :return: True или False
         """
         if self.session.query(self.KnownUsers).filter_by(username=user).count():
             return True
@@ -145,22 +145,22 @@ class ClientDatabase:
     def get_contacts(self):
         """
         Метод, возвращающий список всех контактов.
-        :return:
+        :return: список всех контактов
         """
         return [contact[0] for contact in self.session.query(self.Contacts.name).all()]
 
     def get_users(self):
         """
         Метод возвращающий список всех известных пользователей.
-        :return:
+        :return: список всех известных пользователей
         """
         return [user[0] for user in self.session.query(self.KnownUsers.username).all()]
 
     def check_contact(self, contact):
         """
         Метод, проверяющий существует ли контакт.
-        :param contact:
-        :return:
+        :param contact: проверяемый контакт
+        :return: True или False
         """
         if self.session.query(self.Contacts).filter_by(name=contact).count():
             return True
@@ -170,8 +170,8 @@ class ClientDatabase:
     def get_history(self, contact):
         """
         Метод, возвращающий историю сообщений с определённым пользователем.
-        :param contact:
-        :return:
+        :param contact: пользователь
+        :return: история сообщений с определённым пользователем
         """
         query = self.session.query(self.MessageStat).filter_by(contact=contact)
         return [(history_row.contact, history_row.direction,
@@ -181,10 +181,10 @@ class ClientDatabase:
     def save_message(self, contact, direction, message):
         """
         Метод, сохраняющий сообщение в базе данных.
-        :param contact:
-        :param direction:
-        :param message:
-        :return:
+        :param contact: пользователь
+        :param direction: направление
+        :param message: текст сообщения
+        :return: ничего не возвращает
         """
         message_row = self.MessageStat(contact, direction, message)
         self.session.add(message_row)
