@@ -25,7 +25,7 @@ def arg_parser():
     Парсер аргументов командной строки, возвращает кортеж из 4 элементов
     адрес сервера, порт, имя пользователя, пароль.
     Выполняет проверку на корректность номера порта.
-    :return:
+    :return: адрес сервера, порт, имя пользователя, пароль
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('address', default=DEFAULT_IP_ADDRESS, nargs='?')
