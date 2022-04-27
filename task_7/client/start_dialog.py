@@ -44,7 +44,7 @@ class UserNameDialog(QDialog):
     def click(self):
         """
         Метод обрабтчик кнопки ОК.
-        :return:
+        :return: ничего не возвращает
         """
         if self.client_name.text() and self.client_passwd.text():
             self.ok_pressed = True
