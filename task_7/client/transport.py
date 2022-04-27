@@ -67,9 +67,9 @@ class ClientTransport(threading.Thread, QObject):
     def connection_init(self, port, ip):
         """
         Метод отвечающий за устанновку соединения с сервером.
-        :param port:
-        :param ip:
-        :return:
+        :param port: порт
+        :param ip: ip-адрес
+        :return: ничего не возвращает
         """
         # Инициализация сокета и сообщение серверу о нашем появлении.
         self.transport = socket(AF_INET, SOCK_STREAM)
@@ -150,8 +150,8 @@ class ClientTransport(threading.Thread, QObject):
     def process_server_ans(self, message):
         """
         Метод обработчик поступающих сообщений с сервера.
-        :param message:
-        :return:
+        :param message: сообщение
+        :return: ничего не возвращает
         """
         CLIENT_LOGGER.debug(f'Разбор сообщения от сервера: {message}.')
 
@@ -181,7 +181,7 @@ class ClientTransport(threading.Thread, QObject):
     def contacts_list_update(self):
         """
         Метод обновляющий с сервера список контактов.
-        :return:
+        :return: ничего не возвращает
         """
         self.database.contacts_clear()
         CLIENT_LOGGER.debug(f'Запрос списка контактов для пользователя {self.name}')
@@ -204,7 +204,7 @@ class ClientTransport(threading.Thread, QObject):
     def user_list_update(self):
         """
         Метод обновляющий с сервера список пользователей.
-        :return:
+        :return: ничего не возвращает
         """
         CLIENT_LOGGER.debug(f'Запрос списка известных пользователей {self.username}')
         request_to_server = {
@@ -223,8 +223,8 @@ class ClientTransport(threading.Thread, QObject):
     def key_request(self, user):
         """
         Метод запрашивающий с сервера публичный ключ пользователя.
-        :param user:
-        :return:
+        :param user: пользователь
+        :return: публичный ключ пользователя
         """
         CLIENT_LOGGER.debug(f'Запрос публичного ключа для {user}')
         req = {
@@ -243,8 +243,8 @@ class ClientTransport(threading.Thread, QObject):
     def add_contact(self, contact):
         """
         Метод отправляющий на сервер сведения о добавлении контакта.
-        :param contact:
-        :return:
+        :param contact: контакт
+        :return: ничего не возвращает
         """
         CLIENT_LOGGER.debug(f'Создание контакта {contact}')
         request_to_server = {
@@ -260,8 +260,8 @@ class ClientTransport(threading.Thread, QObject):
     def remove_contact(self, contact):
         """
         Метод отправляющий на сервер сведения о удалении контакта.
-        :param contact:
-        :return:
+        :param contact: контакт
+        :return: ничего не возвращает
         """
         CLIENT_LOGGER.debug(f'Удаление контакта {contact}')
         request_to_server = {
@@ -277,7 +277,7 @@ class ClientTransport(threading.Thread, QObject):
     def transport_shutdown(self):
         """
         Метод уведомляющий сервер о завершении работы клиента.
-        :return:
+        :return: ничего не возвращает
         """
         self.running = False
         message = {
@@ -293,13 +293,12 @@ class ClientTransport(threading.Thread, QObject):
         CLIENT_LOGGER.debug('Транспорт завершает работу.')
         time.sleep(0.5)
 
-    # Функция отправки сообщения на сервер
     def send_message(self, to, message):
         """
         Метод отправляющий на сервер сообщения для пользователя.
-        :param to:
-        :param message:
-        :return:
+        :param to: адресат
+        :param message: текст сообщения
+        :return: ничего не возвращает
         """
         message_dict = {
             ACTION: MESSAGE,
@@ -319,7 +318,7 @@ class ClientTransport(threading.Thread, QObject):
     def run(self):
         """
         Метод содержащий основной цикл работы транспортного потока.
-        :return:
+        :return: ничего не возвращает
         """
         CLIENT_LOGGER.debug('Запущен процесс - приёмник сообщений с сервера.')
         while self.running:
