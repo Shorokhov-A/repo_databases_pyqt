@@ -30,7 +30,6 @@ class ClientDatabase:
             self.message = message
             self.date = datetime.datetime.now()
 
-    # Класс - отображение таблицы известных пользователей.
     class KnownUsers:
         """
         Класс - отображение для таблицы всех пользователей.
