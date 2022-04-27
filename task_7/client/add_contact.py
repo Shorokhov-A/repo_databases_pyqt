@@ -1,11 +1,10 @@
 import sys
 import logging
+from PyQt5.QtWidgets import QDialog, QLabel, QComboBox, QPushButton
+from PyQt5.QtCore import Qt
 
 sys.path.append('../')
 from logs import client_log_config
-from PyQt5.QtWidgets import QDialog, QLabel, QComboBox, QPushButton, QApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 CLIENT_LOGGER = logging.getLogger('client')
 
@@ -60,7 +59,7 @@ class AddContactDialog(QDialog):
         Метод заполнения списка возможных контактов.
         Создаёт список всех зарегистрированных пользователей
         за исключением уже добавленных в контакты и самого себя.
-        :return:
+        :return: ничего не возвращает
         """
         self.selector.clear()
         # множества всех контактов и контактов клиента
@@ -75,7 +74,7 @@ class AddContactDialog(QDialog):
         """
         Метод обновления списка возможных контактов. Запрашивает с сервера
         список известных пользователей и обносляет содержимое окна.
-        :return:
+        :return: ничего не возвращает
         """
         try:
             self.transport.user_list_update()
