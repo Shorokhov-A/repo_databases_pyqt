@@ -1,4 +1,3 @@
-"""Утилиты"""
 import json
 import sys
 import os
@@ -11,10 +10,11 @@ from common.decorators import log
 @log
 def get_message(client):
     """
-    Утилита приема и декодирования сообщения.
-    Принимает байты и выдает словарь. Если принято что-то другое, то отдает ошибку значения.
-    :param client:
-    :return:
+    Функция приёма сообщений от удалённых компьютеров.
+    Принимает сообщения JSON, декодирует полученное сообщение
+    и проверяет что получен словарь.
+    :param client: сокет для передачи данных.
+    :return: словарь - сообщение.
     """
     encoded_response = client.recv(MAX_PACKAGE_LENGTH)
     json_response = encoded_response.decode(ENCODING)
@@ -28,11 +28,11 @@ def get_message(client):
 @log
 def send_message(sock, message):
     """
-    Утилита кодирования и отправки сообщения.
-    Принимает словарь и отправляет его.
-    :param sock:
-    :param message:
-    :return:
+    Функция отправки словарей через сокет.
+    Кодирует словарь в формат JSON и отправляет через сокет.
+    :param sock: сокет для передачи
+    :param message: словарь для передачи
+    :return: ничего не возвращает
     """
     json_message = json.dumps(message)
     encoded_message = json_message.encode(ENCODING)
